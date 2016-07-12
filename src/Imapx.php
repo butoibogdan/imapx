@@ -3,59 +3,55 @@
 namespace Nahidz\Imapx;
 
 /*
-    This library is for laravel 5. If you using laravel 5 then
-    run this command in your terminal
+  This library is for laravel 5. If you using laravel 5 then
+  run this command in your terminal
 
-    "composer require nahidz/imapx"
-*/
-class Imapx
-{
+  "composer require nahidz/imapx"
+ */
+
+class Imapx {
+
     private $driver;
     private $hostname;
     private $username;
     private $password;
     private $ssl;
     private $novalidate;
-
     protected $isConnect = false;
     protected $stream = '';
     protected $emails = '';
     protected $inbox = [];
     protected $msgId = 0;
-
     protected $sortBy = [
-                        'order' => [
-                            'asc'     => 0,
-                            'desc'    => 1,
-                             ],
+        'order' => [
+            'asc' => 0,
+            'desc' => 1,
+        ],
+        'by' => [
+            'date' => SORTDATE,
+            'arrival' => SORTARRIVAL,
+            'from' => SORTFROM,
+            'subject' => SORTSUBJECT,
+            'size' => SORTSIZE,
+        ],
+    ];
 
-                        'by'    => [
-                            'date'        => SORTDATE,
-                            'arrival'     => SORTARRIVAL,
-                            'from'        => SORTFROM,
-                            'subject'     => SORTSUBJECT,
-                            'size'        => SORTSIZE,
-                                                ],
-                        ];
-
-    public function __construct()
-    {
+    public function __construct() {
         $this->driver = config('imapx.driver');
         $this->hostname = config('imapx.host');
         $this->username = config('imapx.username');
         $this->password = config('imapx.password');
-        $this->port = ':'.config('imapx.port');
+        $this->port = ':' . config('imapx.port');
         $this->ssl = config('imapx.ssl') ? '/ssl' : '';
         $this->novalidate = config('imapx.novalidate') ? '/novalidate-cert' : '';
 
         if (config('imapx.auto-connect')) {
-            $this->connect();
+            $this->connect('Inbox');
         }
     }
 
-    public function connect()
-    {
-        $this->stream = imap_open('{'.$this->hostname.$this->port.'/'.$this->driver.$this->ssl.$this->novalidate.'}INBOX', $this->username, $this->password) or die('Cannot connect to Server: '.imap_last_error());
+    public function connect($folder) {
+        $this->stream = imap_open('{' . $this->hostname . $this->port . '/' . $this->driver . $this->ssl . $this->novalidate . '}'.$folder, $this->username, $this->password) or die('Cannot connect to Server: ' . imap_last_error());
 
         if ($this->stream) {
             $this->isConnect = true;
@@ -63,18 +59,17 @@ class Imapx
     }
 
     /*
-    * close the current connection
-    */
-    public function close()
-    {
+     * close the current connection
+     */
+
+    public function close() {
         if (!$this->isConnect) {
             return false;
         }
         imap_close($this->stream);
     }
 
-    public function totalEmail()
-    {
+    public function totalEmail() {
         if (!$this->isConnect) {
             return false;
         }
@@ -82,8 +77,7 @@ class Imapx
         return imap_num_msg($this->stream);
     }
 
-    public function getInbox($page = 1, $perPage = 25, $sort = null)
-    {
+    public function getInbox($page = 1, $perPage = 25, $sort = null) {
         if (!$this->isConnect) {
             return false;
         }
@@ -122,8 +116,7 @@ class Imapx
         return $this->inbox;
     }
 
-    public function readMail($id = null)
-    {
+    public function readMail($id = null) {
         if (!$this->isConnect) {
             return false;
         }
@@ -138,8 +131,7 @@ class Imapx
         return $this;
     }
 
-    public function getDate($pattern = 'Y-m-d')
-    {
+    public function getDate($pattern = 'Y-m-d') {
         if (!$this->isConnect) {
             return false;
         }
@@ -149,8 +141,7 @@ class Imapx
         return $date;
     }
 
-    public function getSubject()
-    {
+    public function getSubject() {
         if (!$this->isConnect) {
             return false;
         }
@@ -158,8 +149,7 @@ class Imapx
         return $this->headers->subject;
     }
 
-    public function getRecieverEmail()
-    {
+    public function getRecieverEmail() {
         if (!$this->isConnect) {
             return false;
         }
@@ -167,8 +157,7 @@ class Imapx
         return $this->headers->toaddress;
     }
 
-    public function getSenderName()
-    {
+    public function getSenderName() {
         if (!$this->isConnect) {
             return false;
         }
@@ -178,8 +167,7 @@ class Imapx
         return $name;
     }
 
-    public function getSenderEmail()
-    {
+    public function getSenderEmail() {
         if (!$this->isConnect) {
             return false;
         }
@@ -187,22 +175,20 @@ class Imapx
         $mailboxName = $this->headers->sender[0]->mailbox;
         $host = $this->headers->sender[0]->host;
 
-        return $mailboxName.'@'.$host;
+        return $mailboxName . '@' . $host;
     }
 
-    public function getSenderLink($class = 'link')
-    {
+    public function getSenderLink($class = 'link') {
         if (!$this->isConnect) {
             return false;
         }
 
-        $link = '<a href="mailto:'.$this->getSenderEmail().'" class="'.$class.'">'.$this->getSenderName().'</a>';
+        $link = '<a href="mailto:' . $this->getSenderEmail() . '" class="' . $class . '">' . $this->getSenderName() . '</a>';
 
         return $link;
     }
 
-    public function isSeen()
-    {
+    public function isSeen() {
         if (!$this->isConnect) {
             return false;
         }
@@ -212,8 +198,7 @@ class Imapx
         return $seen == 'U' ? false : true;
     }
 
-    public function isAnswered()
-    {
+    public function isAnswered() {
         if (!$this->isConnect) {
             return false;
         }
@@ -223,24 +208,22 @@ class Imapx
         return $answer == 'A' ? true : false;
     }
 
-    public function getSize($unit = 'kb')
-    {
+    public function getSize($unit = 'kb') {
         if (!$this->isConnect) {
             return false;
         }
 
         $units = [
-                'kb' => 1024,
-                'mb' => 1048576,
-            ];
+            'kb' => 1024,
+            'mb' => 1048576,
+        ];
 
         $size = $this->headers->Size;
 
         return number_format($size / $units[$unit], 2);
     }
 
-    public function getBody($display = 'text', $decode = true)
-    {
+    public function getBody($display = 'text', $decode = true) {
         if (!$this->isConnect) {
             return false;
         }
@@ -267,8 +250,8 @@ class Imapx
         return $body;
     }
 
-    public function __destruct()
-    {
+    public function __destruct() {
         $this->close();
     }
+
 }
