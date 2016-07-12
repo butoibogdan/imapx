@@ -1,5 +1,5 @@
 {
-    "name": "nahidz/imapx",
+    "name": "butoibogdan/imapx",
     "description": "ImapX is library for retriving email from server",
     "license": "MIT",
     "authors": [
@@ -17,7 +17,7 @@
     },
     "autoload": {
         "psr-4": {
-            "Nahidz\\Imapx\\": "src/"
+            "ButoiBogdan\\Imapx\\": "src/"
         }
     },
     "extra": {
